@@ -1,0 +1,6 @@
+projectKey=bethimanideep_nodejs-automation_0ce58e90-b950-429b-a26b-f88c87428e9f
+serverUrl=https://491d2d126283.ngrok.app
+serverVersion=10.8.1.101195
+dashboardUrl=https://491d2d126283.ngrok.app/dashboard?id=bethimanideep_nodejs-automation_0ce58e90-b950-429b-a26b-f88c87428e9f
+ceTaskId=8b191ae2-3cb2-497f-abb0-a8c3ceef5d4a
+ceTaskUrl=https://491d2d126283.ngrok.app/api/ce/task?id=8b191ae2-3cb2-497f-abb0-a8c3ceef5d4a

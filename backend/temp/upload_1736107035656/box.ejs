@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Box Explorer</title>
+    <style>
+        #box_container {
+            width: 100%;
+            height: 1000px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #box_error {
+            display: none;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdn01.boxcdn.net/platform/elements/17.1.0/en-US/explorer.css">
+</head>
+<body>
+    <div id="box_container">
+        <img id="box_loading" src="https://www.futurelifenow-online.com/wp-content/uploads/2022/12/loading-gif.gif" alt="loading" height="75px" width="75px" />
+        <h1 id="box_error">An error occurred: <span id="server_error"></span></h1>
+    </div>
+
+    <script src="https://cdn01.boxcdn.net/platform/elements/17.1.0/en-US/explorer.js"></script>
+    <script type="module">
+        import boxAnnotations from "https://cdn.skypack.dev/box-annotations@latest";
+
+        console.log("checking....");
+
+        var folderID = '<%= folderid %>';
+        var accessToken = '<%= accessToken %>';
+
+        var contentExplorer = new Box.ContentExplorer();
+        var annotations = new boxAnnotations();
+
+        contentExplorer.show(folderID, accessToken, {
+            container: "#box_container",
+            logoUrl: "box",
+            contentPreviewProps: {
+                boxAnnotations: annotations,
+                showAnnotations: true,
+                showDownload: true,
+                enableAnnotationsDiscoverability: true,
+                enableAnnotationsImageDiscoverability: true,
+                showAnnotationsControls: true,
+                showAnnotationsDrawingCreate: true,
+                enableThumbnailsSidebar: true,
+                contentSidebarProps: {
+                    detailsSidebarProps: {
+                        hasProperties: true,
+                        hasNotices: true,
+                        hasAccessStats: true,
+                        hasClassification: true,
+                        hasRetentionPolicy: true,
+                    },
+                    hasActivityFeed: true,
+                    hasMetadata: true,
+                    hasSkills: true,
+                    hasVersions: true,
+                    features: {
+                        activityFeed: {
+                            annotations: {
+                                enabled: true,
+                            },
+                            filter: {
+                                enabled: true,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+    </script>
+</body>
+</html>

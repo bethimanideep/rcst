@@ -1,0 +1,37 @@
+{
+  "name": "arcgisboximages",
+  "version": "1.0.0",
+  "main": "Manual.ts",
+  "scripts": {
+    "manual": "nodemon --exec ts-node src/Manual.ts",
+    "auto": "nodemon --exec ts-node src/Automatic.ts",
+    "build": "tsc",
+    "autodev": "node dist/Automatic.js",
+    "manualdev": "node dist/Manual.js",
+    "ngrok": "ngrok http 3000 --log stdout",
+    "dev-ngrok": "concurrently \"npm run dev\" \"npm run ngrok\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@esri/arcgis-rest-auth": "^3.7.0",
+    "@esri/arcgis-rest-feature-layer": "^3.7.0",
+    "@esri/arcgis-rest-request": "^3.7.0",
+    "axios": "^1.7.7",
+    "box-node-sdk": "^3.7.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.21.0",
+    "nodemon": "^3.1.7",
+    "ts-node": "^10.9.2"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.7.4",
+    "concurrently": "^9.0.1"
+  }
+}
