@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/img/favicon.ico">
+    <title>Aconex Integration</title>
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/css/viewer.css" >
+    <link rel="stylesheet" type="text/css" href="/css/jquery.dataTables.css">
+    <script type="text/javascript" src="/js/jquery-1.11.3.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="/js/jquery.dataTables.js"></script>
+</head>
+<body>
+    <div class="text-center" style="padding: 3em 3em; display: none" id="image-div">
+        <img src="/img/loader.gif" alt="Deleting Site Configuration...."> 
+    </div>
+    <div id="container">
+        <div id="transaction-details" style="margin-top: 20px">
+            <h2 style="text-align: center">SharePoint Site Profile Configuration</h2>
+            <table class="table" id="profiles">
+                <thead>
+                    <th>Sno.</th>
+                    <th>Profile Name</th>
+                    <th>SharePoint Site</th>
+                    <th>Document Library</th>
+                    <th>Aconex Instance URL</th>
+                    <th>Aconex Instance</th>
+                    <th>Project Name</th>
+                    <th>Action</th>
+                </thead>
+                <tbody id="profileBody">
+                    
+                </tbody>
+            </table>
+            <div class="button-container">
+                <button onclick="history.back()" class="btn btn-danger" >Back to SharePoint</button>
+            </div>
+        </div>      
+    </div>
+</body>
+
+<script>
+    const datatablesCall = function()
+    {
+        var registerData = $('#profiles').DataTable({
+            "serverSide": true,
+            "destroy": true,
+            "dom": 'lpfrtip',
+            // "buttons": [
+            //     'copy', 'csv', 'excel', 'pdf', 'print'
+            //     ],
+            "columnDefs": [{
+                    "targets": [7],
+                    "orderable": false
+            }],
+            "order": [[ 1, "desc" ]],
+            "ajax":{
+                url :"/aconex/configuration/profiles/get",
+                type:"post",
+                data:{},
+                error: function(xhr, textStatus, errorThrown){ 
+                    $("#profileBody").html('<tr><td colspan="7">No data found in the server</th></td>');              
+                }
+            }
+        }); 
+    }
+    datatablesCall();
+    function deleteDetails(site,lib,acx,instance,project)
+    {
+        let confirm_button = confirm('Do you really want to delete this configuration?');
+        if(confirm_button)
+        {
+            document.getElementById('image-div').style.display = "block"; 
+            document.getElementById('container').style.display = "none";
+            const payload = {
+                spsite: site,
+                splibrary: lib,
+                acxurl: acx,
+                acxinstance : instance,
+                projectid: project
+            }
+
+            const deleteinDB = fetch("/aconex/configuration/data/delete",{
+                method: "post",
+                body: JSON.stringify(payload),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }).then(res => {return res.json()})
+            .then(result => {
+            if(result.message == "Success")
+            {
+                alert("Configuration deleted Successfully!");
+                datatablesCall();
+            }
+            else
+            {
+                alert("Error deleting Configuration");
+            }
+            document.getElementById('image-div').style.display = "none"; 
+            document.getElementById('container').style.display = "block";
+            })
+            .catch(err => {
+            alert("Server failed to respond. Please try again after sometime")
+            document.getElementById('image-div').style.display = "none"; 
+            document.getElementById('container').style.display = "block";
+            });
+        }
+    }
+</script>

@@ -1,0 +1,69 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Elements xmlns="http://schemas.microsoft.com/sharepoint/">
+	<CustomAction Id="AconexConfigurationButton"
+				  RegistrationId="101"
+				  RegistrationType="List"
+				  Location="CommandUI.Ribbon" >
+		<CommandUIExtension>
+			<CommandUIDefinitions>
+				<CommandUIDefinition Location="Ribbon.Documents.Scaling._children">
+					<MaxSize
+					  Id="Igc.SharePoint.Ribbon.AconexConfigurationButton.MaxSize"
+					  Sequence="21"
+					  GroupId="Igc.SharePoint.Ribbon.AconexConfigurationButton"
+					  Size="LargeSmall" />
+					
+				</CommandUIDefinition>
+				<CommandUIDefinition Location="Ribbon.Documents.Groups._children">
+					<Button Id="Ribbon.Documents.AconexConfigurationButton"
+							Alt="$Resources:Aconex_Configuration_Action_Title"
+							Description="$Resources:Aconex_Configuration_Action_Title"
+							Sequence="22"
+							LabelText="$Resources:Aconex_Configuration_Action_Title"
+							Image16by16="_layouts/15/images/placeholder16x16.png"
+							Image32by32="_layouts/15/images/placeholder32x32.png"
+							Command="AconexConfigurationCommand"
+							TemplateAlias="o1" />
+				</CommandUIDefinition>
+			</CommandUIDefinitions>
+			<CommandUIHandlers>
+				<CommandUIHandler
+            Command="AconexConfigurationCommand"
+            CommandAction="https://localhost/aconex/configuration/?{StandardTokens}&amp;sListId={SelectedListId}&amp;sItemId={SelectedItemId}" />
+			</CommandUIHandlers>
+		</CommandUIExtension>
+	</CustomAction>
+	<CustomAction Id="AconexInstancesButton"
+				  RegistrationId="101"
+				  RegistrationType="List"
+				  Location="CommandUI.Ribbon" >
+		<CommandUIExtension>
+			<CommandUIDefinitions>
+				<CommandUIDefinition Location="Ribbon.Documents.Scaling._children">
+					<MaxSize
+					  Id="Igc.SharePoint.Ribbon.AconexInstancesButton.MaxSize"
+					  Sequence="23"
+					  GroupId="Igc.SharePoint.Ribbon.AconexInstancesButton"
+					  Size="LargeSmall" />
+					
+				</CommandUIDefinition>
+				<CommandUIDefinition Location="Ribbon.Documents.Groups._children">
+					<Button Id="Ribbon.Documents.AconexInstancesButton"
+							Alt="$Resources:Aconex_Instances_Action_Title"
+							Description="$Resources:Aconex_Instances_Action_Title"
+							Sequence="23"
+							LabelText="$Resources:Aconex_Instances_Action_Title"
+							Image16by16="_layouts/15/images/placeholder16x16.png"
+							Image32by32="_layouts/15/images/placeholder32x32.png"
+							Command="AconexInstancesCommand"
+							TemplateAlias="o1" />
+				</CommandUIDefinition>
+			</CommandUIDefinitions>
+			<CommandUIHandlers>
+				<CommandUIHandler
+            Command="AconexInstancesCommand"
+            CommandAction="https://localhost/aconex/credentials/data/?{StandardTokens}&amp;sListId={SelectedListId}&amp;sItemId={SelectedItemId}" />
+			</CommandUIHandlers>
+		</CommandUIExtension>
+	</CustomAction>
+</Elements>

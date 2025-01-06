@@ -43,11 +43,42 @@ export default function Dashboard({ projectId }) {
     }
   };
 
+  // Helper function to format dependencyAnalysis data
+  function formatDependencyAnalysis(data) {
+    let result = "";
+
+    if (data.dependencies && data.dependencies.length > 0) {
+      result += "Unused Dependencies:\n";
+      result += data.dependencies.map((dep) => `- ${dep}`).join("\n") + "\n\n";
+    }
+
+    if (data.devDependencies && data.devDependencies.length > 0) {
+      result += "Unused Dev Dependencies:\n";
+      result +=
+        data.devDependencies.map((dep) => `- ${dep}`).join("\n") + "\n\n";
+    }
+
+    if (data.using) {
+      result += "Using:\n";
+      for (const [packageName, files] of Object.entries(data.using)) {
+        result += `- ${packageName}:\n`;
+        result += files.map((file) => `  - ${file}`).join("\n") + "\n";
+      }
+    }
+
+    return result.trim();
+  }
+
   if (!analysisData) {
     return <div>Loading...</div>;
   }
 
-  const { sastAnalysis, scaAnalysis, secretDetectionAnalysis, dependencyAnalysis } = analysisData;
+  const {
+    sastAnalysis,
+    scaAnalysis,
+    secretDetectionAnalysis,
+    dependencyAnalysis,
+  } = analysisData;
 
   return (
     <div className="dashboard">
@@ -63,14 +94,13 @@ export default function Dashboard({ projectId }) {
           />
         </>
       )}
-
       {scaAnalysis.length > 0 && (
         <>
           <h3>SCA Analysis</h3>
           <textarea
             className="read-only-editor"
             readOnly
-            value={JSON.stringify(scaAnalysis, null, 2)}
+            value={scaAnalysis[0].data.split("\n").join("\n")}
           />
         </>
       )}
@@ -92,7 +122,7 @@ export default function Dashboard({ projectId }) {
           <textarea
             className="read-only-editor"
             readOnly
-            value={JSON.stringify(dependencyAnalysis, null, 2)}
+            value={formatDependencyAnalysis(dependencyAnalysis[0].data)}
           />
         </>
       )}

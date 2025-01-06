@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <base href="/">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/img/favicon.ico">
+    <title>Aconex Transactions</title>
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="css/viewer.css" >
+    <link rel="stylesheet" type="text/css" href="/css/jquery.dataTables.css">
+    <link rel="stylesheet" type="text/css" href="/css/daterangepicker.css" />
+    <script type="text/javascript" src="/js/jquery-1.11.3.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="/js/jquery.dataTables.js"></script>
+    <script type="text/javascript" src="/js/moment.min.js"></script>
+    <script type="text/javascript" src="/js/daterangepicker.min.js"></script>
+    
+</head>
+<body>
+    <div id="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h4 style="margin-left: 40px;margin-top: 30px">Transaction Search</h3>
+            </div>
+            <div class="col-md-12">
+                <div class="row p-3">
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label  class="form-label">Transaction Date</label>
+                            <input type="text" class="form-control" name="dates"/>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label  class="form-label">Transaction Status</label>
+                            <input type="text" class="form-control" name="status"/>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label  class="form-label">Document No</label>
+                            <input type="text" class="form-control" name="docNo"/>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <br>
+                      <button onClick="datatablesCall()" class="btn btn-primary">Search</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-12">
+                <h4 style="margin-left: 40px">Transaction Details</h3>
+            </div>
+            <div class="col-md-12" id="transaction-details" style="margin-top: 20px"> 
+                <table class="table" id="transactions">
+                    <thead>
+                        <th>Sno.</th>
+                        <th>Transaction Number</th>
+                        <th>Transaction Date</th>
+                        <th>User</th>
+                        <th>Sharepoint Site</th>
+                        <th>Site Library</th>
+                        <th>Aconex Instance</th>
+                        <th>Project ID</th>
+                        <th>Project Name</th>
+                        <th>Document Name</th>
+                        <th>Operation</th>
+                        <th>Document No.</th>
+                        <th>Revision</th>
+                        <th>SP Version</th>
+                        <th>Aconex Version</th>
+                        <th>Status</th>
+                        <th>Error</th>
+                    </thead>
+                    <tbody id="transactionsBody">
+                        
+                    </tbody>
+                </table>
+                <div class="button-container">
+                    <button onclick="history.back()" class="btn btn-danger">Back to SharePoint</button>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+</body>
+<script>
+    $('input[name="dates"]').daterangepicker({
+        startDate: moment().startOf('month'),
+        endDate: moment().endOf('month'),
+    });
+    const datatablesCall = function()
+    {
+        let trStatus = $('input[name="status"]').val()
+        let trDate = $('input[name="dates"]').val()
+        let docNo = $('input[name="docNo"]').val()
+        let startDate = ''
+        let endDate = ''
+        if(trDate.trim().length > 0)
+        {
+            startDate = trDate.split('-')[0].trim();
+            endDate = trDate.split('-')[1].trim();
+            startDate = moment(startDate).format('YYYY-MM-DD')
+            endDate = moment(endDate).format('YYYY-MM-DD')
+        }
+        var registerData = $('#transactions').DataTable({
+            "serverSide": true,
+            "destroy": true,
+            "dom": 'lpfrtip',
+            // "buttons": [
+            //     'copy', 'csv', 'excel', 'pdf', 'print'
+            //     ],
+            //"columnDefs": [{
+            //        "targets": [6,7],
+            //        "orderable": false
+            //    }],
+            "order": [[ 1, "desc" ]],
+            "ajax":{
+                url :"/aconex/transactions/library/data",
+                type:"post",
+                data:{
+                    uniqueId: "<%=uniqueId%>",
+                    startDate:startDate,
+                    endDate:endDate,
+                    trStatus: trStatus,
+                    docNo: docNo
+                },
+                error: function(xhr, textStatus, errorThrown){ 
+                    $("#transactionsBody").html('<tr><td colspan="16">No data found in the server</th></td>');              
+                }
+            }
+        }); 
+    }
+    datatablesCall();
+</script>

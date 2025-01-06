@@ -22,10 +22,12 @@
     "typescript": "^5.7.2"
   },
   "devDependencies": {
+    "@secretlint/secretlint-rule-preset-recommend": "^9.0.0",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/multer": "^1.4.12",
     "@types/node": "^22.10.5",
+    "secretlint": "^9.0.0",
     "ts-node-dev": "^2.0.0"
   }
 }

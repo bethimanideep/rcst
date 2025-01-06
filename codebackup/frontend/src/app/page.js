@@ -42,7 +42,7 @@ export default function Home() {
 
   return (
       <div className="container">
-        <NavBar onCreateProject={() => dispatch(toggleShowForm())} />
+        <NavBar onCreateProject={() => dispatch(toggleShowForm(true))} />
         <div className="content">
           <div className="projects">
             {projects.map((project) => (

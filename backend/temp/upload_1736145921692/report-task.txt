@@ -1,0 +1,6 @@
+projectKey=aconex-spo
+serverUrl=https://491d2d126283.ngrok.app
+serverVersion=10.8.1.101195
+dashboardUrl=https://491d2d126283.ngrok.app/dashboard?id=aconex-spo
+ceTaskId=1960a14e-a4ce-459c-bd15-37d6eef0cf27
+ceTaskUrl=https://491d2d126283.ngrok.app/api/ce/task?id=1960a14e-a4ce-459c-bd15-37d6eef0cf27

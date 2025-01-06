@@ -1,0 +1,30 @@
+.button-container{
+    display: flex;
+    justify-content: center;
+}
+.button-container .btn {
+    margin-left: 10px;
+}
+
+.view-container{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height:500px;
+    padding-top: 3em
+}
+.center{
+    text-align: center;
+}
+
+.loader{
+    animation: loading 5s infinite cubic-bezier(0,0,0,0)
+  }
+@keyframes loading {
+    0%{
+        width: 0%
+    }
+    100%{
+        width: 100%
+    }
+}

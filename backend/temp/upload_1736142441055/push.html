@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/img/favicon.ico">
+    <title>Aconex Integration Push</title>
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/css/viewer.css" >
+</head>
+<body>
+    <div class="container view-container">
+        <div class="row">
+            <div class="col-md-12">
+                <h2 class="center">Document Details</h2>
+            </div>
+            <div class="col-md-12">
+                <table class="table">
+                    <thead>
+                        <th>Sno.</th>
+                        <th><input type="checkbox" id="checkall" onchange="allcheck(this)" /> Sync</th>
+                        <th>Aconex Instance</th>
+                        <th>Project ID</th>
+                        <th>Project Name</th>
+                        <th>Document Name</th>
+                        <th>Document No.</th>
+                        <th>Revision</th>
+                        <th>SP Version</th>
+                        <th>Aconex Version</th>
+                        <th>User</th>
+                        <th>Action</th>
+                        <th>Status</th>
+                        <th>Error</th>
+                    </thead>
+                    <tbody id="details">
+                        <% var cnt = 1 %>
+                        <% for (var m of fileDetails ) { %>
+                            <tr id="<%=m.itemId%>">
+                                <td><%=cnt++%></td>
+                                <td>
+                                    <% if(m.action === 'create' || m.action === 'version'){ %>
+                                    <input checked data-action="<%=m.action%>" type="checkbox" onchange="individualCheck(this)" value="<%=m.itemId%>"/>
+                                    <% } %>
+                                </td>
+                                <td><%=m.instance%></td>
+                                <td><%=m.project%></td>
+                                <td><%=m.projectName%></td>
+                                <td><%=m.documentName%></td>
+                                <td><%=m.documentNo%></td>
+                                <td><%=m.revision%></td>
+                                <td><%=m.spVersion%></td>
+                                <td><%=m.ackVersion%></td>
+                                <td><%=m.user%></td>
+                                <td><%=m.message%></td>
+                                <td>--</td>
+                                <td></td>
+                            </tr>
+                            <tr id="<%=m.itemId%>-progress" style="display:none">
+                                <td colspan="15" style="padding: unset">
+                                    <div class="progress" style="height: 2px;">
+                                        <div class="progress-bar bg-success loader" role="progressbar" style="width: 25%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+                                      </div>
+                                </td>
+                            </tr>
+                        <% } %>
+                    </tbody>
+                    </table>
+            </div>
+            <div class="col-md-12">
+                <div class="button-container">
+                    <button  id="syncbtn" onclick="createDocument()" class="btn btn-primary">Push Documents</button>
+                    <button  onclick="history.back()" class="btn btn-danger">Back to SharePoint</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+    var items = []
+    var table = document.getElementById("details");
+    var files = table.querySelectorAll("input[type=checkbox]")
+    for(var f of files)
+    {
+        if(f.checked){
+            items.push({item: f.value,action: f.dataset.action})
+            document.getElementById("checkall").checked = true
+        } 
+    }
+    function individualCheck(elem)
+    {
+        console.log("Child")
+        if(elem.checked){
+            items.push({item: elem.value,action: elem.dataset.action})
+            var checkAllChecked = true;
+            var table = document.getElementById("details");
+            var files = table.querySelectorAll("input[type=checkbox]")
+            for(var f of files){
+                if(!f.checked){
+                    checkAllChecked = false
+                    break;
+                }
+            }
+            if(checkAllChecked){
+                document.getElementById("checkall").checked = true
+            }
+        }else{
+            const index = items.findIndex((i)  => i.item===elem.value);
+            if (index > -1) { 
+                items.splice(index, 1); 
+            }
+            document.getElementById("checkall").checked = false
+        }
+    }
+    function allcheck(elem)
+    {
+        console.log("Parent")
+        var table = document.getElementById("details");
+        var files = table.querySelectorAll("input[type=checkbox]")
+        for(var f of files){
+            f.checked = elem.checked
+            if(elem.checked){
+                items.push({item: f.value,action: f.dataset.action})
+            }else{
+                const index = items.findIndex((i)  => i.item===f.value);
+                if (index > -1) { 
+                    items.splice(index, 1); 
+                }
+            }
+        }
+    }
+    function createDocument()
+    {
+        if(items.length == 0){
+            alert("Please select atleast one document for sync!!")
+            return
+        }
+        var syncItems = Array.from(items)
+        var xhrArray = []
+        document.getElementById('syncbtn').setAttribute("disabled",true)
+        for(let i=0;i<syncItems.length;i++)
+        {
+            var create = new XMLHttpRequest();
+            var item = syncItems[i].item
+            xhrArray.push(item)
+            var progressTr = document.getElementById(item+'-progress')
+            progressTr.querySelector('.progress-bar').classList.add('loading')
+            progressTr.style.display = 'contents'
+            let data = {
+                spItemIds: [syncItems[i]]
+            }
+            create.onreadystatechange = function(){
+                if(this.readyState == 4){
+                    var itemIndex = xhrArray.findIndex(itm => itm === data.spItemIds[0].item)
+                    if(itemIndex >=0 ){
+                        xhrArray.splice(itemIndex,1);
+                    }
+                    if(this.status==200){
+                        let resultData = JSON.parse(this.responseText)
+                        let result = resultData[0]
+                        var progressTr = document.getElementById(result.item+'-progress')
+                        progressTr.querySelector('.progress-bar').classList.remove(['loading'])
+                        progressTr.querySelector('.progress-bar').style.width='100%'
+                        setTimeout(() => {
+                            let tabletr = document.getElementById(result.item)
+                            let syncCheck = tabletr.querySelector("input[type=checkbox]")
+                            let childres = tabletr.children
+                            if(result.sync){
+                                syncCheck.remove();
+                                var itemIndex = items.findIndex(itm => itm.item === result.item)
+                                if(itemIndex >=0 ){
+                                    items.splice(itemIndex,1);
+                                }
+                                childres[childres.length-2].innerHTML = `<label class='text-success'>Finished</label>`
+                                childres[childres.length-1].innerHTML = ``
+                            }else{
+                                childres[childres.length-2].innerHTML = `<label class='text-danger'>Failed</label>`
+                                childres[childres.length-1].innerHTML = `<label class='text-danger'>${result.error}</label>`
+                            }
+                            progressTr.style.display = 'none'
+                        },2000)
+                    }else{
+                        var progressTr = document.getElementById(data.spItemIds[0].item+'-progress')
+                        progressTr.querySelector('.progress-bar').classList.remove(['loading'])
+                        progressTr.querySelector('.progress-bar').style.width='100%'
+                        let tabletr = document.getElementById(data.spItemIds[0].item)
+                        let childres = tabletr.children
+                        childres[childres.length-2].innerHTML = `<label class='text-danger'>Failed</label>`
+                        childres[childres.length-1].innerHTML = `<label class='text-danger'>Server failed to respond.</label>`
+                        progressTr.style.display = 'none'
+                    }
+                    if(xhrArray.length===0){
+                        document.getElementById('syncbtn').removeAttribute("disabled")
+                    }
+                }
+            }
+            create.open("post", "/aconex/create", true);
+            create.setRequestHeader("Content-Type", "application/json")
+            create.send(JSON.stringify(data))
+        }
+    }
+</script>

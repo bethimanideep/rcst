@@ -1,0 +1,16 @@
+{
+  "parent": null,
+  "pid": 8572,
+  "argv": [
+    "C:\\Program Files\\nodejs\\node.exe",
+    "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-prefix.js"
+  ],
+  "execArgv": [],
+  "cwd": "C:\\Users\\Reva - Solutions\\Desktop\\sonarcube tests\\sonat manual tests\\ArcGISBoxImages-Integration",
+  "time": 1733565744779,
+  "ppid": 6536,
+  "coverageFilename": "C:\\Users\\Reva - Solutions\\Desktop\\sonarcube tests\\sonat manual tests\\ArcGISBoxImages-Integration\\.nyc_output\\f0aa2bbc-c6d2-472a-851f-909be7efe3f3.json",
+  "externalId": "",
+  "uuid": "f0aa2bbc-c6d2-472a-851f-909be7efe3f3",
+  "files": []
+}

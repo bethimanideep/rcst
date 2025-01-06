@@ -14,6 +14,7 @@ import cors from "cors"; // Initialize express app
 import {
   createDependencyAnalysis,
   createScaAnalysis,
+  createSecretDetectionAnalysis,
 } from "./controllers/analysis";
 import {
   Project,
@@ -126,11 +127,17 @@ app.post("/upload", upload.array("files"), async (req: Request, res: any) => {
 
     // Frame the npm audit command with the correct path
     const command = `npm audit --prefix "${tempDirectory}"`;
+    const command1 = `cd ${tempDirectory} && npx @secretlint/quick-start "**/*"`;
 
     // Run npm audit
     try {
       const auditResult = await runCommand(command);
       await createScaAnalysis(existingProject._id, auditResult);
+      const secretResult = await runCommand(command1);
+      await createSecretDetectionAnalysis(existingProject._id, secretResult);
+      console.log({secretResult});
+      
+
 
       depcheck(tempDirectory, {}).then(async (unused) => {
         await createDependencyAnalysis(existingProject._id, unused);
