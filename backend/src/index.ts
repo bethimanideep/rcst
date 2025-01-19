@@ -13,6 +13,7 @@ import projectRoutes from "./routes/routes";
 import cors from "cors"; // Initialize express app
 import {
   createDependencyAnalysis,
+  createSastAnalysis,
   createScaAnalysis,
   createSecretDetectionAnalysis,
 } from "./controllers/analysis";
@@ -40,13 +41,6 @@ const io = new Server(server, {
 });
 // Socket.IO setup
 // Socket.IO connection
-io.on("connection", (socket) => {
-  console.log("A user connected");
-
-  socket.on("disconnect", () => {
-    console.log("User disconnected");
-  });
-});
 
 app.use(express.json());
 app.use("/", projectRoutes);
@@ -77,12 +71,12 @@ const runCommand = (command: string): Promise<string> => {
 
 // Endpoint to handle file uploads
 app.post("/upload", upload.array("files"), async (req: Request, res: any) => {
-  const { projectKey } = req.query;
-  console.log({ projectKey });
+  const { projectKey, language, module } = req.query;
+
+  console.log({ projectKey, language, module }, typeof language, typeof module);
 
   const existingProject = await Project.findOne({ projectKey });
 
-  console.log({ existingProject });
   if (existingProject) {
     const tempDir = path.join(__dirname, "..", "temp");
     if (!fs.existsSync(tempDir)) {
@@ -91,9 +85,6 @@ app.post("/upload", upload.array("files"), async (req: Request, res: any) => {
     // Create a new directory inside 'temp' with a unique name for each request
     const newFolderName = `upload_${Date.now()}`;
     const tempDirectory = path.join(__dirname, "..", "temp", newFolderName);
-
-    // Create the new directory to store files
-    console.log(`Creating directory: ${tempDirectory}`);
 
     try {
       fs.mkdirSync(tempDirectory, { recursive: true });
@@ -126,58 +117,119 @@ app.post("/upload", upload.array("files"), async (req: Request, res: any) => {
     }
 
     // Frame the npm audit command with the correct path
-    const command = `npm audit --prefix "${tempDirectory}"`;
-    const command1 = `cd ${tempDirectory} && npx @secretlint/quick-start "**/*"`;
+    const command1 = `npm audit --prefix "${tempDirectory}"`;
+    const command2 = `cd ${tempDirectory} && npx @secretlint/quick-start "**/*"`;
+    const command3 = `cd ${tempDirectory} && npx eslint .`;
 
     // Run npm audit
     try {
-      const auditResult = await runCommand(command);
+      // Create eslint.config.mjs based on the language and module parameters
+
+      if (language == "TypeScript" && module == "ESM") {
+        const command = `cd ${tempDirectory} && echo import globals from 'globals'; import pluginJs from '@eslint/js'; import tseslint from 'typescript-eslint'; /** @type {import('eslint').Linter.Config[]} */ export default [ { files: ['**/*.{js,mjs,cjs,ts}'] }, { languageOptions: { globals: globals.browser } }, pluginJs.configs.recommended, ...tseslint.configs.recommended, ]; > eslint.config.mjs`;
+        try {
+          await runCommand(command);
+        } catch (err: any) {
+          console.error("Error creating eslint.config.mjs:", err);
+          return res.status(500).json({
+            error: "Failed to create ESLint config file",
+            details: err.message,
+          });
+        }
+      } else if (language == "JavaScript" && module == "ESM") {
+        const command = `cd ${tempDirectory} && echo import globals from 'globals'; import pluginJs from '@eslint/js'; /** @type {import('eslint').Linter.Config[]} */ export default [ { languageOptions: { globals: globals.browser } }, pluginJs.configs.recommended, ]; > eslint.config.mjs`;
+        try {
+          await runCommand(command);
+        } catch (err: any) {
+          console.error("Error creating eslint.config.mjs:", err);
+          return res.status(500).json({
+            error: "Failed to create ESLint config file",
+            details: err.message,
+          });
+        }
+      } else if (language == "TypeScript" && module == "CommonJS") {
+        const command = `cd ${tempDirectory} && echo import globals from 'globals'; import pluginJs from '@eslint/js'; import tseslint from 'typescript-eslint'; /** @type {import('eslint').Linter.Config[]} */ export default [ { files: ['**/*.{js,mjs,cjs,ts}'] }, { files: ['**/*.js'], languageOptions: { sourceType: 'commonjs' } }, { languageOptions: { globals: globals.browser } }, pluginJs.configs.recommended, ...tseslint.configs.recommended, ]; > eslint.config.mjs`;
+        try {
+          await runCommand(command);
+        } catch (err: any) {
+          console.error("Error creating eslint.config.mjs:", err);
+          return res.status(500).json({
+            error: "Failed to create ESLint config file",
+            details: err.message,
+          });
+        }
+      } else if (language == "JavaScript" && module == "CommonJS") {
+        const command = `cd ${tempDirectory} && echo import globals from 'globals'; import pluginJs from '@eslint/js'; /** @type {import('eslint').Linter.Config[]} */ export default [ { files: ['**/*.js'], languageOptions: { sourceType: 'commonjs' } }, { languageOptions: { globals: globals.browser } }, pluginJs.configs.recommended, ]; > eslint.config.mjs`;
+        try {
+          await runCommand(command);
+        } catch (err: any) {
+          console.error("Error creating eslint.config.mjs:", err);
+          return res.status(500).json({
+            error: "Failed to create ESLint config file",
+            details: err.message,
+          });
+        }
+      }
+
+      const auditResult = await runCommand(command1);
       await createScaAnalysis(existingProject._id, auditResult);
-      const secretResult = await runCommand(command1);
-      await createSecretDetectionAnalysis(existingProject._id, secretResult);
-      console.log({secretResult});
+      const scaData = await ScaAnalysis.find({
+        projectId: existingProject._id,
+      }).sort({ date: -1 });
+      io.emit("analysisDataUpdate", {
+        projectId: existingProject._id,
+        key: "scaAnalysis",
+        value: scaData,
+      });
       
 
-
-      depcheck(tempDirectory, {}).then(async (unused) => {
-        await createDependencyAnalysis(existingProject._id, unused);
-        console.log({ unused });
+      
+      const secretResult = await runCommand(command2);
+      await createSecretDetectionAnalysis(existingProject._id, secretResult);
+      const secretDetectionData = await SecretDetectionAnalysis.find({
+        projectId: existingProject._id,
+      }).sort({ date: -1 });
+      io.emit("analysisDataUpdate", {
+        projectId: existingProject._id,
+        key: "secretDetectionAnalysis",
+        value: secretDetectionData,
       });
 
+      const sastResult = await runCommand(command3);
+      await createSastAnalysis(existingProject._id, sastResult);
       // Fetch analysis data from all collections, sorted by date
       const sastData = await SastAnalysis.find({
         projectId: existingProject._id,
       }).sort({ date: -1 });
-      const scaData = await ScaAnalysis.find({
-        projectId: existingProject._id,
-      }).sort({ date: -1 });
-      const secretDetectionData = await SecretDetectionAnalysis.find({
-        projectId: existingProject._id,
-      }).sort({ date: -1 });
-      const dependencyData = await DependencyAnalysis.find({
-        projectId: existingProject._id,
-      }).sort({ date: -1 });
-
-      // Combine results into a single object
-      const analysisData = {
-        sastAnalysis: sastData,
-        scaAnalysis: scaData,
-        secretDetectionAnalysis: secretDetectionData,
-        dependencyAnalysis: dependencyData,
-      };
-
-      /// Emit the event to all connected clients
+      // Emit updates for each analysis type separately
       io.emit("analysisDataUpdate", {
         projectId: existingProject._id,
-        analysisData: analysisData,
+        key: "sastAnalysis",
+        value: sastData,
       });
 
-      res.json({ message: "Scanning done", result: auditResult });
+      
+
+      depcheck(tempDirectory, {}).then(async (unused) => {
+        await createDependencyAnalysis(existingProject._id, unused);
+        const dependencyData = await DependencyAnalysis.find({
+          projectId: existingProject._id,
+        }).sort({ date: -1 });
+        io.emit("analysisDataUpdate", {
+          projectId: existingProject._id,
+          key: "dependencyAnalysis",
+          value: dependencyData,
+        });
+      });
+      
+      
+
+      fs.rmSync(tempDirectory, { recursive: true, force: true });
+      res.json({ message: "Scanning done" });
     } catch (e: any) {
-      console.error("Error executing npm audit:", e);
-      res
-        .status(500)
-        .json({ error: "Error executing npm audit", details: e.message });
+      console.error("Error Scanning", e);
+      fs.rmSync(tempDirectory, { recursive: true, force: true });
+      res.status(500).json({ error: "Error Scanning", details: e.message });
     }
   } else {
     res.status(404).json({ error: "Project not found" });

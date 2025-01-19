@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import io from "socket.io-client";
 import "../css/Dashboard.css"; // Add styles for the editor
 import { useDispatch, useSelector } from "react-redux";
-import { setAnalysisData } from "../redux/slices/analysisDataSlice";
+import { setAnalysisData, setAnalysisDataKeyValue } from "../redux/slices/analysisDataSlice";
 
 export default function Dashboard({ projectId }) {
   const dispatch = useDispatch();
@@ -10,38 +10,44 @@ export default function Dashboard({ projectId }) {
 
   useEffect(() => {
     fetchAnalysisData();
-
+  
     const socket = io("http://localhost:8080");
     socket.on("connect", () => console.log("Socket connected:", socket.id));
     socket.on("disconnect", () => console.log("Socket disconnected"));
-
+  
     socket.on("analysisDataUpdate", (data) => {
       if (data.projectId === projectId) {
-        dispatch(setAnalysisData(data.analysisData));
+        console.log("Received update:", data);        
+        // Update only the specific key in the state
+        dispatch(setAnalysisDataKeyValue({ key: data.key, value: data.value }));
       }
     });
-
+  
     return () => {
       socket.disconnect();
     };
   }, [projectId, dispatch]);
+  
 
-  const fetchAnalysisData = async () => {
-    try {
-      const response = await fetch("http://localhost:8080/analysisdata", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ projectId }),
-      });
-      if (!response.ok) throw new Error("Failed to fetch analysis data");
-      const data = await response.json();
-      dispatch(setAnalysisData(data));
-    } catch (error) {
-      console.error("Error fetching analysis data:", error);
-    }
-  };
+const fetchAnalysisData = async () => {
+  try {
+    const response = await fetch("http://localhost:8080/analysisdata", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ projectId }),
+    });
+    if (!response.ok) throw new Error("Failed to fetch analysis data");
+    const data = await response.json();
+
+    // Set the initial state with the full data    
+    dispatch(setAnalysisData(data));
+  } catch (error) {
+    console.error("Error fetching analysis data:", error);
+  }
+};
+
 
   // Helper function to format dependencyAnalysis data
   function formatDependencyAnalysis(data) {
@@ -84,17 +90,17 @@ export default function Dashboard({ projectId }) {
     <div className="dashboard">
       <h2>Analysis Data for Project</h2>
 
-      {sastAnalysis.length > 0 && (
+      {sastAnalysis &&sastAnalysis.length > 0 && (
         <>
           <h3>SAST Analysis</h3>
           <textarea
             className="read-only-editor"
             readOnly
-            value={JSON.stringify(sastAnalysis, null, 2)}
+            value={sastAnalysis[0].data}
           />
         </>
       )}
-      {scaAnalysis.length > 0 && (
+      {scaAnalysis&&scaAnalysis.length > 0 && (
         <>
           <h3>SCA Analysis</h3>
           <textarea
@@ -105,7 +111,7 @@ export default function Dashboard({ projectId }) {
         </>
       )}
 
-      {secretDetectionAnalysis.length > 0 && (
+      {secretDetectionAnalysis&& secretDetectionAnalysis.length > 0 && (
         <>
           <h3>Secret Detection Analysis</h3>
           <textarea
@@ -116,7 +122,7 @@ export default function Dashboard({ projectId }) {
         </>
       )}
 
-      {dependencyAnalysis.length > 0 && (
+      {dependencyAnalysis&&dependencyAnalysis.length > 0 && (
         <>
           <h3>Dependency Analysis</h3>
           <textarea

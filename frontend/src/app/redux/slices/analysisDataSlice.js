@@ -1,18 +1,22 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
-  analysisData: null,
+  analysisData: {},
 };
 
 const analysisDataSlice = createSlice({
-  name: 'analysisData',
+  name: "analysisData",
   initialState,
   reducers: {
     setAnalysisData: (state, action) => {
       state.analysisData = action.payload;
     },
+    setAnalysisDataKeyValue: (state, action) => {
+      const { key, value } = action.payload;
+      state.analysisData[key] = value;
+    },
   },
 });
 
-export const { setAnalysisData } = analysisDataSlice.actions;
+export const { setAnalysisData, setAnalysisDataKeyValue } = analysisDataSlice.actions;
 export default analysisDataSlice.reducer;

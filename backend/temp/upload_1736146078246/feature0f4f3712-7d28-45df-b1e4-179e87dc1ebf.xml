@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8" ?>
-<Feature xmlns="http://schemas.microsoft.com/sharepoint/" 
-         Title="$Resources:App_Title;" 
-         Description="$Resources:App_Title;" 
-         Id="{8F81BE70-C1F8-44C1-9E6E-AF5B68858970}"
-         Hidden="TRUE" 
-         Scope="Web">
-</Feature>
